@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>DA Example</title>
+  <style>
+    body { font-family: monospace; background: #0a0; color: #bada55; }
+    pre { white-space: pre; font-size: 16px; line-height: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Generated theGrid</h1>
+  <pre id="grid"></pre>
+  <script>
+    const DOCUMENT_URL = "https://docs.google.com/document/d/e/2PACX-1vRPzbNQcx5UriHSbZ-9vmsTow_R6RRe7eyAU60xIF9Dlz-vaHiHNO2TKgDi7jy4ZpTpNqM7EvEcfr_p/pub";
+
+    async function parseDocument(url) {
+      const responseData = await fetch(url);
+      const html = await responseData.text();
+      const parser = new DOMParser();
+      const document = parser.parseFromString(html, "text/html");
+      const table = document.querySelector("table");
+      const columnLabels = Array.from(table.querySelectorAll("tr:first-child td, tr:first-child th"))
+        .map(td => td.textContent.trim());
+
+      const rows = [];
+      table.querySelectorAll("tr:not(:first-child)").forEach(tr => {
+        const cells = Array.from(tr.querySelectorAll("td")).map(td => td.textContent.trim());
+        if (cells.length === columnLabels.length) {
+          const tmp = {};
+          columnLabels.forEach((h, index) => tmp[h] = cells[index]);
+          rows.push(tmp);
+        }
+      });
+      return rows;
+    }
+
+    function buildGrid(data) {
+      const parsedGrid = data.map(r => ({
+        x: parseInt(r["x-coordinate"], 10),
+        y: parseInt(r["y-coordinate"], 10),
+        char: r["Character"] || " "
+      }));
+
+      const maxX = Math.max(...parsedGrid.map(p => p.x));
+      const maxY = Math.max(...parsedGrid.map(p => p.y));
+
+      const grid = Array.from({ length: maxY + 1 }, () =>
+        Array.from({ length: maxX + 1 }, () => " ")
+      );
+
+      for (const { x, y, char } of parsedGrid) {
+        grid[y][x] = char;
+      }
+
+      return grid.map(row => row.join("")).join("\n");
+    }
+
+    async function main() {
+      try {
+        const data = await parseDocument(DOCUMENT_URL);
+        const grid = buildGrid(data);
+        document.getElementById("grid").textContent = grid;
+      } catch (error) {
+        console.error(error, " what is my error??");
+      }
+    }
+
+    main();
+
+  </script>
+</body>
+</html>
