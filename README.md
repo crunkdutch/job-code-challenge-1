@@ -7,7 +7,7 @@
 # To Run
 - clone repo
 - run `npx serve`
-- view the page at `localhost:300`
+- view the page at `localhost:3000 (or whatever port gets assigned)`
 - drool at how cool it looks!
 
 
